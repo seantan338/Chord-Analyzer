@@ -1,0 +1,1343 @@
+{
+  "components": {
+    "schemas": {
+      "AnalysisResult": {
+        "properties": {
+          "analysis_id": {
+            "title": "Analysis Id",
+            "type": "string"
+          },
+          "bars": {
+            "items": {
+              "$ref": "#/components/schemas/Bar"
+            },
+            "title": "Bars",
+            "type": "array"
+          },
+          "beginner_chords": {
+            "description": "Simplified chords with consecutive duplicates merged",
+            "items": {
+              "$ref": "#/components/schemas/SimpleChordSegment"
+            },
+            "title": "Beginner Chords",
+            "type": "array"
+          },
+          "capo_note": {
+            "title": "Capo Note",
+            "type": "string"
+          },
+          "capo_suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/CapoSuggestion"
+            },
+            "title": "Capo Suggestions",
+            "type": "array"
+          },
+          "chords": {
+            "items": {
+              "$ref": "#/components/schemas/ChordSegment"
+            },
+            "title": "Chords",
+            "type": "array"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/OverallConfidence"
+          },
+          "metadata": {
+            "$ref": "#/components/schemas/Metadata"
+          },
+          "music": {
+            "$ref": "#/components/schemas/MusicInfo"
+          },
+          "rhythm": {
+            "$ref": "#/components/schemas/Rhythm"
+          },
+          "schema_version": {
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/Section"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "view": {
+            "$ref": "#/components/schemas/ViewInfo"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "waveform": {
+            "description": "Peak envelope (0..1) for drawing a waveform",
+            "items": {
+              "type": "number"
+            },
+            "title": "Waveform",
+            "type": "array"
+          }
+        },
+        "required": [
+          "analysis_id",
+          "metadata",
+          "music",
+          "rhythm",
+          "sections",
+          "bars",
+          "chords",
+          "beginner_chords",
+          "capo_suggestions",
+          "capo_note",
+          "waveform",
+          "confidence",
+          "warnings",
+          "view"
+        ],
+        "title": "AnalysisResult",
+        "type": "object"
+      },
+      "Bar": {
+        "properties": {
+          "chords": {
+            "items": {
+              "$ref": "#/components/schemas/BarChord"
+            },
+            "title": "Chords",
+            "type": "array"
+          },
+          "end": {
+            "title": "End",
+            "type": "number"
+          },
+          "index": {
+            "description": "1-based bar number; 0 = pickup before the first downbeat",
+            "title": "Index",
+            "type": "integer"
+          },
+          "start": {
+            "title": "Start",
+            "type": "number"
+          }
+        },
+        "required": [
+          "index",
+          "start",
+          "end",
+          "chords"
+        ],
+        "title": "Bar",
+        "type": "object"
+      },
+      "BarChord": {
+        "properties": {
+          "beats": {
+            "title": "Beats",
+            "type": "integer"
+          },
+          "chord": {
+            "title": "Chord",
+            "type": "string"
+          },
+          "simplified": {
+            "title": "Simplified",
+            "type": "string"
+          },
+          "start": {
+            "title": "Start",
+            "type": "number"
+          }
+        },
+        "required": [
+          "chord",
+          "simplified",
+          "beats",
+          "start"
+        ],
+        "title": "BarChord",
+        "type": "object"
+      },
+      "Body_analyze_api_analyze_post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "description": "MP3, WAV, M4A, AAC, FLAC or OGG",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_analyze_api_analyze_post",
+        "type": "object"
+      },
+      "CapoSuggestion": {
+        "properties": {
+          "capo": {
+            "title": "Capo",
+            "type": "integer"
+          },
+          "play_chords": {
+            "description": "Distinct chord shapes in order of appearance",
+            "items": {
+              "type": "string"
+            },
+            "title": "Play Chords",
+            "type": "array"
+          },
+          "play_key": {
+            "description": "Key of the chord shapes you play with this capo",
+            "title": "Play Key",
+            "type": "string"
+          },
+          "playability": {
+            "description": "Share of the song covered by easy open chords",
+            "title": "Playability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "capo",
+          "play_key",
+          "play_chords",
+          "playability"
+        ],
+        "title": "CapoSuggestion",
+        "type": "object"
+      },
+      "ChordSegment": {
+        "properties": {
+          "bar": {
+            "description": "Bar index the segment starts in (0 = pickup)",
+            "title": "Bar",
+            "type": "integer"
+          },
+          "beat": {
+            "description": "1-based beat within that bar (0 = before first beat)",
+            "title": "Beat",
+            "type": "integer"
+          },
+          "chord": {
+            "description": "Detailed chord, e.g. \"G/B\" or \"N\" for no chord",
+            "title": "Chord",
+            "type": "string"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "confidence_level": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence Level",
+            "type": "string"
+          },
+          "end": {
+            "title": "End",
+            "type": "number"
+          },
+          "simplified": {
+            "description": "Beginner-friendly triad, e.g. \"G\"",
+            "title": "Simplified",
+            "type": "string"
+          },
+          "start": {
+            "title": "Start",
+            "type": "number"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "chord",
+          "simplified",
+          "confidence",
+          "confidence_level",
+          "bar",
+          "beat"
+        ],
+        "title": "ChordSegment",
+        "type": "object"
+      },
+      "ConfidenceScore": {
+        "properties": {
+          "level": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "value": {
+            "description": "Heuristic score 0..1 (not a calibrated probability)",
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "level"
+        ],
+        "title": "ConfidenceScore",
+        "type": "object"
+      },
+      "ErrorInfo": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorInfo",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorInfo"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "ffmpeg": {
+            "title": "Ffmpeg",
+            "type": "boolean"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/ServiceLimits"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "version",
+          "ffmpeg",
+          "limits"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "JobCreated": {
+        "properties": {
+          "cached": {
+            "description": "True when an identical file was analysed before",
+            "title": "Cached",
+            "type": "boolean"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/JobLinks"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisResult"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Included when the job is already complete (cache hit or ?wait=)"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "cached",
+          "links"
+        ],
+        "title": "JobCreated",
+        "type": "object"
+      },
+      "JobLinks": {
+        "properties": {
+          "export_markdown": {
+            "title": "Export Markdown",
+            "type": "string"
+          },
+          "result": {
+            "title": "Result",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "result",
+          "export_markdown"
+        ],
+        "title": "JobLinks",
+        "type": "object"
+      },
+      "JobState": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "file_size": {
+            "title": "File Size",
+            "type": "integer"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "links": {
+            "$ref": "#/components/schemas/JobLinks"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          },
+          "stage_label": {
+            "title": "Stage Label",
+            "type": "string"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageInfo"
+            },
+            "title": "Stages",
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JobStatus"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/JobSummary"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "stage",
+          "stage_label",
+          "stages",
+          "filename",
+          "file_size",
+          "created_at",
+          "updated_at",
+          "summary",
+          "links"
+        ],
+        "title": "JobState",
+        "type": "object"
+      },
+      "JobStatus": {
+        "enum": [
+          "queued",
+          "processing",
+          "completed",
+          "failed"
+        ],
+        "title": "JobStatus",
+        "type": "string"
+      },
+      "JobSummary": {
+        "properties": {
+          "bpm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bpm"
+          },
+          "duration": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          }
+        },
+        "required": [
+          "duration",
+          "key",
+          "bpm"
+        ],
+        "title": "JobSummary",
+        "type": "object"
+      },
+      "KeyCandidate": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "key",
+          "score"
+        ],
+        "title": "KeyCandidate",
+        "type": "object"
+      },
+      "Metadata": {
+        "properties": {
+          "analyzed_at": {
+            "format": "date-time",
+            "title": "Analyzed At",
+            "type": "string"
+          },
+          "analyzer_version": {
+            "title": "Analyzer Version",
+            "type": "string"
+          },
+          "duration": {
+            "description": "Seconds",
+            "title": "Duration",
+            "type": "number"
+          },
+          "file_size": {
+            "description": "Bytes",
+            "title": "File Size",
+            "type": "integer"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "sample_rate": {
+            "title": "Sample Rate",
+            "type": "integer"
+          },
+          "tuning_offset_cents": {
+            "description": "Detected deviation from A440, in cents",
+            "title": "Tuning Offset Cents",
+            "type": "number"
+          }
+        },
+        "required": [
+          "filename",
+          "duration",
+          "file_size",
+          "sample_rate",
+          "tuning_offset_cents",
+          "analyzed_at",
+          "analyzer_version"
+        ],
+        "title": "Metadata",
+        "type": "object"
+      },
+      "MusicInfo": {
+        "properties": {
+          "bpm": {
+            "title": "Bpm",
+            "type": "number"
+          },
+          "bpm_alternatives": {
+            "description": "Plausible half/double-time readings",
+            "items": {
+              "type": "number"
+            },
+            "title": "Bpm Alternatives",
+            "type": "array"
+          },
+          "bpm_confidence": {
+            "title": "Bpm Confidence",
+            "type": "number"
+          },
+          "bpm_confidence_level": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Bpm Confidence Level",
+            "type": "string"
+          },
+          "key": {
+            "description": "e.g. \"G Major\"",
+            "title": "Key",
+            "type": "string"
+          },
+          "key_alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/KeyCandidate"
+            },
+            "title": "Key Alternatives",
+            "type": "array"
+          },
+          "key_confidence": {
+            "title": "Key Confidence",
+            "type": "number"
+          },
+          "key_confidence_level": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Key Confidence Level",
+            "type": "string"
+          },
+          "time_signature": {
+            "description": "\"4/4\" or \"3/4\"",
+            "title": "Time Signature",
+            "type": "string"
+          },
+          "time_signature_confidence": {
+            "title": "Time Signature Confidence",
+            "type": "number"
+          },
+          "time_signature_confidence_level": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Time Signature Confidence Level",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "key_confidence",
+          "key_confidence_level",
+          "key_alternatives",
+          "bpm",
+          "bpm_confidence",
+          "bpm_confidence_level",
+          "bpm_alternatives",
+          "time_signature",
+          "time_signature_confidence",
+          "time_signature_confidence_level"
+        ],
+        "title": "MusicInfo",
+        "type": "object"
+      },
+      "OverallConfidence": {
+        "properties": {
+          "chords": {
+            "$ref": "#/components/schemas/ConfidenceScore",
+            "description": "Duration-weighted mean over detected chords"
+          },
+          "key": {
+            "$ref": "#/components/schemas/ConfidenceScore"
+          },
+          "structure": {
+            "$ref": "#/components/schemas/ConfidenceScore"
+          },
+          "tempo": {
+            "$ref": "#/components/schemas/ConfidenceScore"
+          },
+          "time_signature": {
+            "$ref": "#/components/schemas/ConfidenceScore"
+          }
+        },
+        "required": [
+          "key",
+          "tempo",
+          "time_signature",
+          "chords",
+          "structure"
+        ],
+        "title": "OverallConfidence",
+        "type": "object"
+      },
+      "Rhythm": {
+        "properties": {
+          "beats": {
+            "description": "Beat times in seconds",
+            "items": {
+              "type": "number"
+            },
+            "title": "Beats",
+            "type": "array"
+          },
+          "downbeats": {
+            "description": "Bar start times in seconds",
+            "items": {
+              "type": "number"
+            },
+            "title": "Downbeats",
+            "type": "array"
+          }
+        },
+        "required": [
+          "beats",
+          "downbeats"
+        ],
+        "title": "Rhythm",
+        "type": "object"
+      },
+      "Section": {
+        "properties": {
+          "bar_end": {
+            "title": "Bar End",
+            "type": "integer"
+          },
+          "bar_start": {
+            "title": "Bar Start",
+            "type": "integer"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "confidence_level": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence Level",
+            "type": "string"
+          },
+          "end": {
+            "title": "End",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "description": "Repetition label: \"A\", \"B\", ... (same label = similar music)",
+            "title": "Label",
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name, e.g. \"Section A\", or \"Chorus\" when inferred",
+            "title": "Name",
+            "type": "string"
+          },
+          "name_confidence": {
+            "title": "Name Confidence",
+            "type": "number"
+          },
+          "name_is_inferred": {
+            "description": "True when name comes from heuristics, not audio",
+            "title": "Name Is Inferred",
+            "type": "boolean"
+          },
+          "start": {
+            "title": "Start",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "name",
+          "name_is_inferred",
+          "name_confidence",
+          "start",
+          "end",
+          "bar_start",
+          "bar_end",
+          "confidence",
+          "confidence_level"
+        ],
+        "title": "Section",
+        "type": "object"
+      },
+      "ServiceLimits": {
+        "properties": {
+          "allowed_extensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Extensions",
+            "type": "array"
+          },
+          "max_duration_seconds": {
+            "title": "Max Duration Seconds",
+            "type": "number"
+          },
+          "max_upload_mb": {
+            "title": "Max Upload Mb",
+            "type": "integer"
+          },
+          "min_duration_seconds": {
+            "title": "Min Duration Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "max_upload_mb",
+          "allowed_extensions",
+          "min_duration_seconds",
+          "max_duration_seconds"
+        ],
+        "title": "ServiceLimits",
+        "type": "object"
+      },
+      "SimpleChordSegment": {
+        "properties": {
+          "chord": {
+            "title": "Chord",
+            "type": "string"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "confidence_level": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "title": "Confidence Level",
+            "type": "string"
+          },
+          "end": {
+            "title": "End",
+            "type": "number"
+          },
+          "start": {
+            "title": "Start",
+            "type": "number"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "chord",
+          "confidence",
+          "confidence_level"
+        ],
+        "title": "SimpleChordSegment",
+        "type": "object"
+      },
+      "Stage": {
+        "description": "Processing stages in execution order. Progress is reported per stage, not %.",
+        "enum": [
+          "queued",
+          "converting",
+          "harmonic_features",
+          "tempo",
+          "key",
+          "chords",
+          "structure",
+          "finalizing",
+          "complete",
+          "failed"
+        ],
+        "title": "Stage",
+        "type": "string"
+      },
+      "StageInfo": {
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Stage"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "done",
+              "active",
+              "pending",
+              "failed"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "state"
+        ],
+        "title": "StageInfo",
+        "type": "object"
+      },
+      "ViewInfo": {
+        "properties": {
+          "chord_mode": {
+            "default": "original",
+            "enum": [
+              "original",
+              "beginner"
+            ],
+            "title": "Chord Mode",
+            "type": "string"
+          },
+          "original_key": {
+            "title": "Original Key",
+            "type": "string"
+          },
+          "semitones": {
+            "description": "Transposition applied to this view",
+            "title": "Semitones",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "semitones",
+          "original_key"
+        ],
+        "title": "ViewInfo",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Upload audio and get key, tempo, chords, song structure and chord sheets.",
+    "title": "Chord Analyzer API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/analyze": {
+      "post": {
+        "operationId": "analyze_api_analyze_post",
+        "parameters": [
+          {
+            "description": "Seconds to wait for completion; if it finishes in time the full result is included (handy for n8n / single-request integrations).",
+            "in": "query",
+            "name": "wait",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Seconds to wait for completion; if it finishes in time the full result is included (handy for n8n / single-request integrations).",
+              "maximum": 300,
+              "minimum": 0,
+              "title": "Wait",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_analyze_api_analyze_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobCreated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Upload an audio file for analysis",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Service health and limits",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}": {
+      "get": {
+        "operationId": "get_job_api_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Job status and current processing stage",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/jobs/{job_id}/result": {
+      "get": {
+        "operationId": "get_result_api_jobs__job_id__result_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Request Entity Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Full analysis result",
+        "tags": [
+          "analysis"
+        ]
+      }
+    }
+  }
+}

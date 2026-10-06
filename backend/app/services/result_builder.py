@@ -20,6 +20,7 @@ from app.schemas.analysis import (
     BarChord,
     CapoSuggestion,
     ChordSegment,
+    ConfidenceScore,
     KeyCandidate,
     Metadata,
     MusicInfo,
@@ -33,6 +34,11 @@ from app.schemas.analysis import (
 
 def _r(value: float, digits: int = 3) -> float:
     return round(float(value), digits)
+
+
+def score(value: float) -> ConfidenceScore:
+    value = round(float(value), 2)
+    return ConfidenceScore(value=value, level=confidence_level(value))
 
 
 def chord_symbol(chord: DetectedChord, key: Key) -> str:
@@ -180,11 +186,11 @@ def build_result(
         capo_note=capo_note,
         waveform=output.waveform,
         confidence=OverallConfidence(
-            key=output.key.confidence,
-            tempo=tempo.confidence,
-            time_signature=meter.confidence,
-            chords=chord_conf,
-            structure=round(structure_confidence, 2),
+            key=score(output.key.confidence),
+            tempo=score(tempo.confidence),
+            time_signature=score(meter.confidence),
+            chords=score(chord_conf),
+            structure=score(structure_confidence),
         ),
         warnings=list(output.warnings),
         view=ViewInfo(semitones=0, original_key=key.name),

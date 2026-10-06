@@ -104,12 +104,17 @@ class CapoSuggestion(BaseModel):
     playability: float = Field(description="Share of the song covered by easy open chords")
 
 
+class ConfidenceScore(BaseModel):
+    value: float = Field(description="Heuristic score 0..1 (not a calibrated probability)")
+    level: ConfidenceLevel
+
+
 class OverallConfidence(BaseModel):
-    key: float
-    tempo: float
-    time_signature: float
-    chords: float
-    structure: float
+    key: ConfidenceScore
+    tempo: ConfidenceScore
+    time_signature: ConfidenceScore
+    chords: ConfidenceScore = Field(description="Duration-weighted mean over detected chords")
+    structure: ConfidenceScore
 
 
 class ViewInfo(BaseModel):
