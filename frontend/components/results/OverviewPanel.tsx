@@ -32,7 +32,9 @@ export function OverviewPanel({
       <Card className="lg:col-span-2">
         <CardHeader>
           <CardTitle>Chords in this song</CardTitle>
-          <p className="text-sm text-zinc-500">Most used first. Click a chord to hear where it first appears.</p>
+          <p className="text-sm text-zinc-500">
+            Most used first. Click a chord to hear where it first appears.
+          </p>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {usage.map(({ chord, seconds }) => (
@@ -55,7 +57,9 @@ export function OverviewPanel({
       <Card>
         <CardHeader>
           <CardTitle>Analysis confidence</CardTitle>
-          <p className="text-sm text-zinc-500">Automatic detection is never perfect. Use your ears.</p>
+          <p className="text-sm text-zinc-500">
+            Automatic detection is never perfect. Use your ears.
+          </p>
         </CardHeader>
         <CardContent>
           <dl className="space-y-2 text-sm">
@@ -65,7 +69,9 @@ export function OverviewPanel({
                 ["Tempo", confidence.tempo],
                 ["Time signature", confidence.time_signature],
                 ["Chords", confidence.chords],
-                ...(result.sections.length > 0 ? [["Structure", confidence.structure] as const] : []),
+                ...(result.sections.length > 0
+                  ? [["Structure", confidence.structure] as const]
+                  : []),
               ] as const
             ).map(([label, score]) => (
               <div key={label} className="flex items-center justify-between gap-2">
@@ -85,7 +91,10 @@ export function OverviewPanel({
         <Card className="border-amber-200 lg:col-span-3 dark:border-amber-900">
           <CardContent className="space-y-1 pt-5">
             {result.warnings.map((warning) => (
-              <p key={warning} className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-300">
+              <p
+                key={warning}
+                className="flex items-start gap-2 text-sm text-amber-800 dark:text-amber-300"
+              >
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> {warning}
               </p>
             ))}

@@ -34,7 +34,9 @@ export function SongHeader({ result }: { result: AnalysisResult }) {
   return (
     <header className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{songTitle(metadata.filename)}</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          {songTitle(metadata.filename)}
+        </h1>
         <p className="mt-1 text-sm text-zinc-500">
           {metadata.filename} · {formatBytes(metadata.file_size)} · {formatTime(metadata.duration)}
         </p>
@@ -58,7 +60,9 @@ export function SongHeader({ result }: { result: AnalysisResult }) {
           level={music.bpm_confidence_level}
           hint={
             music.bpm_alternatives.length > 0 ? (
-              <span>or {music.bpm_alternatives.map((b) => Math.round(b)).join(" / ")} (half/double feel)</span>
+              <span>
+                or {music.bpm_alternatives.map((b) => Math.round(b)).join(" / ")} (half/double feel)
+              </span>
             ) : null
           }
         />

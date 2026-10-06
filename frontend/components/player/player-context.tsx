@@ -86,7 +86,8 @@ export function PlayerProvider({
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName;
-      if (event.code !== "Space" || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
+      if (event.code !== "Space" || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA")
+        return;
       if (tag === "BUTTON") return;
       event.preventDefault();
       toggle();

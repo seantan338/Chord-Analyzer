@@ -58,7 +58,8 @@ export function AnalysisView({ jobId }: { jobId: string }) {
       />
     );
   }
-  if (resultError) return <Problem title="Could not load the result" message={resultError.message} />;
+  if (resultError)
+    return <Problem title="Could not load the result" message={resultError.message} />;
   if (!job) {
     return (
       <div className="flex justify-center py-20 text-zinc-500">

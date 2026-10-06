@@ -17,7 +17,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from app.audio import chord_detection, chroma, grid, key_detection, meter, preprocess, tempo
-from app.audio.chord_smoothing import smooth_chords
+from app.audio.chord_refine import refine_chords
+from app.audio.chord_smoothing import bar_positions, smooth_chords
 from app.audio.formats import AudioFormat
 from app.audio.loader import convert_to_wav, load_wav, probe
 from app.audio.types import (
@@ -143,12 +144,16 @@ def analyze_signal(
         Key(initial_key.tonic, Mode(initial_key.mode)),
     )
     chords = _check_harmonic_content(chords, warnings)
+    # Key estimation uses the stable triads; refinement only adds detail afterwards.
     durations: dict[tuple[int, str], float] = defaultdict(float)
     for c in chords:
         if c.root is not None:
             durations[(c.root, c.suffix)] += c.end - c.start
     sequence = [(c.root, c.suffix) for c in chords if c.root is not None]
     key_est = key_detection.estimate_key(profile_scores, durations, sequence)
+    if options.chord_vocabulary == "extended":
+        positions = bar_positions(beat_grid, meter_est.beats_per_bar, meter_est.downbeat_phase)
+        chords = refine_chords(chords, features, positions)
 
     on_stage(Stage.STRUCTURE)
     on_stage(Stage.FINALIZING)

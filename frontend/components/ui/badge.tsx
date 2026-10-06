@@ -22,7 +22,13 @@ const LEVEL_STYLES: Record<ConfidenceLevel, string> = {
   low: "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-300",
 };
 
-export function ConfidenceBadge({ level, short = false }: { level: ConfidenceLevel; short?: boolean }) {
+export function ConfidenceBadge({
+  level,
+  short = false,
+}: {
+  level: ConfidenceLevel;
+  short?: boolean;
+}) {
   return (
     <Badge className={LEVEL_STYLES[level]} title={CONFIDENCE_LABEL[level]}>
       <span

@@ -1239,6 +1239,39 @@
               "title": "Job Id",
               "type": "string"
             }
+          },
+          {
+            "description": "Transpose by N semitones",
+            "in": "query",
+            "name": "semitones",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Transpose by N semitones",
+              "maximum": 11,
+              "minimum": -11,
+              "title": "Semitones",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Transpose to a key, e.g. \"D\" or \"F# Minor\"",
+            "in": "query",
+            "name": "target_key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 24,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Transpose to a key, e.g. \"D\" or \"F# Minor\"",
+              "title": "Target Key"
+            }
           }
         ],
         "responses": {
@@ -1333,7 +1366,7 @@
             "description": "Service Unavailable"
           }
         },
-        "summary": "Full analysis result",
+        "summary": "Full analysis result, optionally transposed",
         "tags": [
           "analysis"
         ]

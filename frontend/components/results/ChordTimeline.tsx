@@ -36,11 +36,15 @@ const ChordBlock = memo(function ChordBlock({
       className={cn(
         "flex h-20 shrink-0 flex-col justify-between rounded-lg border-2 px-2 py-1.5 text-left text-zinc-900 transition-transform",
         isLow && "border-dashed",
-        active ? "z-10 scale-105 shadow-lg ring-2 ring-violet-600 ring-offset-2 dark:ring-offset-zinc-950" : "hover:-translate-y-0.5",
+        active
+          ? "z-10 scale-105 shadow-lg ring-2 ring-violet-600 ring-offset-2 dark:ring-offset-zinc-950"
+          : "hover:-translate-y-0.5",
       )}
       style={{ width, ...chordStyle(segment.chord) }}
     >
-      <span className="truncate text-lg font-bold leading-tight">{displayChord(segment.chord)}</span>
+      <span className="truncate text-lg font-bold leading-tight">
+        {displayChord(segment.chord)}
+      </span>
       <span className="font-mono text-[11px] text-zinc-700">{formatTime(segment.start)}</span>
     </button>
   );
@@ -62,7 +66,11 @@ export function ChordTimeline({
 
   useEffect(() => {
     if (!playing || active < 0) return;
-    blockRefs.current[active]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    blockRefs.current[active]?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
   }, [active, playing]);
 
   return (

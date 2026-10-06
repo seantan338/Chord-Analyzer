@@ -16,12 +16,14 @@ from app.audio.types import BeatGrid, ChromaFeatures, FloatArray
 
 TREBLE_BINS_PER_OCTAVE = 36
 TREBLE_OCTAVES = 5  # C3 .. C8
-BASS_BINS_PER_OCTAVE = 12  # shorter windows -> less smearing of bass notes
-BASS_OCTAVES = 2  # C1 .. B2
+BASS_BINS_PER_OCTAVE = 24  # Hann nulls fall exactly on neighbouring semitones
+BASS_OCTAVES = 2  # C1 .. B2 (24 bins/octave: ~0.4 s windows around E2)
 LOG_COMPRESSION = 100.0
 HARMONIC_KERNEL_FRAMES = 17  # ~0.4 s along time
 PERCUSSIVE_KERNEL_TREBLE = 9  # 1/4 octave along frequency at 36 bins/octave
-PERCUSSIVE_KERNEL_BASS = 3
+PERCUSSIVE_KERNEL_BASS = 7
+BASS_LEAKAGE_FIFTH = 0.35
+BASS_LEAKAGE_OCTAVE = 0.3
 
 
 def _fold(cqt_mag: FloatArray, bins_per_octave: int, fmin: float) -> FloatArray:
@@ -89,7 +91,7 @@ def frame_chroma(samples: np.ndarray, sr: int, hop: int) -> FrameFeatures:
             fmin=bass_fmin,
             n_bins=BASS_BINS_PER_OCTAVE * BASS_OCTAVES,
             bins_per_octave=BASS_BINS_PER_OCTAVE,
-            tuning=tuning,
+            tuning=tuning * BASS_BINS_PER_OCTAVE / 12,
         )
     )
     total_energy = float(np.sum(np.square(treble_cqt))) or 1.0
@@ -126,10 +128,29 @@ def sync_to_grid(matrix: FloatArray, grid: BeatGrid, aggregate: str = "median") 
     return out
 
 
+def compensate_bass_leakage(
+    treble: FloatArray, bass: FloatArray, fifth: float, octave: float
+) -> FloatArray:
+    """Remove the bass line's harmonics from the treble chroma.
+
+    A bass B2 has strong harmonics at B3/B4 (octaves) and F#4 (3rd harmonic), which make
+    G/B look like Bm. The bass pitch class is known from the bass chroma, so those pitch
+    classes are attenuated in the treble before chord matching.
+    """
+    scale = np.max(treble, axis=0, keepdims=True)
+    leakage = fifth * np.roll(bass, 7, axis=0) + octave * bass
+    return np.asarray(np.maximum(treble - leakage * scale, 0.0), dtype=np.float64)
+
+
 def beat_chroma(frames: FrameFeatures, grid: BeatGrid) -> ChromaFeatures:
+    bass = _max_normalize(sync_to_grid(frames.bass, grid))
+    treble = _l2_normalize(sync_to_grid(frames.treble, grid))
+    treble = _l2_normalize(
+        compensate_bass_leakage(treble, bass, BASS_LEAKAGE_FIFTH, BASS_LEAKAGE_OCTAVE)
+    )
     return ChromaFeatures(
-        treble=_l2_normalize(sync_to_grid(frames.treble, grid)),
-        bass=_max_normalize(sync_to_grid(frames.bass, grid)),
+        treble=treble,
+        bass=bass,
         energy=sync_to_grid(frames.rms[np.newaxis, :], grid)[0],
         interval_times=grid.times,
         frame_treble=frames.treble,

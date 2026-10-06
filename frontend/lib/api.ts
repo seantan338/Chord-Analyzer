@@ -5,12 +5,12 @@
  */
 import type { AnalysisResult, HealthResponse, JobCreated, JobState } from "@/types/analysis";
 
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000").replace(
-  /\/+$/,
-  "",
-);
+export const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"
+).replace(/\/+$/, "");
 
-const NETWORK_MESSAGE = "Cannot reach the analysis server. Please check that the backend is running.";
+const NETWORK_MESSAGE =
+  "Cannot reach the analysis server. Please check that the backend is running.";
 
 export class ApiError extends Error {
   constructor(

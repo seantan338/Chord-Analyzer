@@ -8,10 +8,14 @@ import { PlayerProvider } from "@/components/player/player-context";
 import { Segmented } from "@/components/ui/segmented";
 import { TabList, TabPanel, type TabItem } from "@/components/ui/tabs";
 import { timelineSegments } from "@/lib/chords";
+import { useResultView } from "@/lib/use-result-view";
 import type { AnalysisResult, ChordMode } from "@/types/analysis";
+import { CapoSuggestions } from "./CapoSuggestions";
+import { ChordSheetPanel } from "./ChordSheetPanel";
 import { ChordTimeline } from "./ChordTimeline";
 import { OverviewPanel } from "./OverviewPanel";
 import { SongHeader } from "./SongHeader";
+import { TransposeControls, TransposePanel } from "./TransposePanel";
 
 type TabId = "overview" | "timeline" | "sheet" | "transpose";
 
@@ -22,10 +26,18 @@ const TABS: TabItem<TabId>[] = [
   { id: "transpose", label: "Transpose", icon: <Music2 className="h-4 w-4" /> },
 ];
 
-export function ResultsView({ jobId, result }: { jobId: string; result: AnalysisResult }) {
+export function ResultsView({
+  jobId,
+  result: original,
+}: {
+  jobId: string;
+  result: AnalysisResult;
+}) {
   const { getFile, setFile } = useAudioFiles();
   const [mode, setMode] = useState<ChordMode>("original");
   const [tab, setTab] = useState<TabId>("timeline");
+  const view = useResultView(jobId, original);
+  const result = view.result;
   const segments = useMemo(
     () => timelineSegments(result.chords, result.beginner_chords, mode),
     [result, mode],
@@ -46,21 +58,45 @@ export function ResultsView({ jobId, result }: { jobId: string; result: Analysis
               { value: "beginner", label: "Beginner chords" },
             ]}
           />
+          <div className="flex items-center gap-2 text-sm text-zinc-500">
+            Transpose
+            <TransposeControls
+              semitones={view.semitones}
+              loading={view.loading}
+              onTranspose={view.transpose}
+            />
+          </div>
         </div>
 
         <div>
           <TabList idPrefix="results" items={TABS} active={tab} onChange={setTab} />
           <TabPanel idPrefix="results" id="overview" active={tab === "overview"}>
-            <OverviewPanel result={result} segments={segments} />
+            <OverviewPanel
+              result={result}
+              segments={segments}
+              extra={<CapoSuggestions result={result} className="lg:col-span-3" />}
+            />
           </TabPanel>
           <TabPanel idPrefix="results" id="timeline" active={tab === "timeline"}>
-            <ChordTimeline segments={segments} duration={result.metadata.duration} waveform={result.waveform} />
+            <ChordTimeline
+              segments={segments}
+              duration={result.metadata.duration}
+              waveform={result.waveform}
+            />
           </TabPanel>
           <TabPanel idPrefix="results" id="sheet" active={tab === "sheet"}>
-            <p className="text-sm text-zinc-500">Chord sheet coming in the next phase.</p>
+            <ChordSheetPanel result={result} mode={mode} />
           </TabPanel>
           <TabPanel idPrefix="results" id="transpose" active={tab === "transpose"}>
-            <p className="text-sm text-zinc-500">Transposition coming in the next phase.</p>
+            <TransposePanel
+              original={original}
+              result={result}
+              mode={mode}
+              semitones={view.semitones}
+              loading={view.loading}
+              error={view.error}
+              onTranspose={view.transpose}
+            />
           </TabPanel>
         </div>
       </div>

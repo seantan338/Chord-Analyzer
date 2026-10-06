@@ -62,7 +62,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Full analysis result */
+        /** Full analysis result, optionally transposed */
         get: operations["get_result_api_jobs__job_id__result_get"];
         put?: never;
         post?: never;
@@ -721,7 +721,12 @@ export interface operations {
     };
     get_result_api_jobs__job_id__result_get: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Transpose by N semitones */
+                semitones?: number;
+                /** @description Transpose to a key, e.g. "D" or "F# Minor" */
+                target_key?: string | null;
+            };
             header?: never;
             path: {
                 job_id: string;

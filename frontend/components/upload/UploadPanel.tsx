@@ -75,7 +75,9 @@ export function UploadPanel() {
       const seconds = await readDuration(candidate);
       setDuration(seconds);
       if (seconds !== null && seconds < limits.min_duration_seconds) {
-        setError(`This audio is only ${seconds.toFixed(1)}s long. Please upload at least ${limits.min_duration_seconds}s.`);
+        setError(
+          `This audio is only ${seconds.toFixed(1)}s long. Please upload at least ${limits.min_duration_seconds}s.`,
+        );
         setSelected(null);
       }
     }
@@ -145,7 +147,8 @@ export function UploadPanel() {
             <div className="min-w-0 flex-1">
               <div className="truncate font-medium">{file.name}</div>
               <div className="text-sm text-zinc-500">
-                {formatBytes(file.size)} · {duration !== null ? formatTime(duration) : "reading duration…"}
+                {formatBytes(file.size)} ·{" "}
+                {duration !== null ? formatTime(duration) : "reading duration…"}
               </div>
             </div>
             {!uploading && (
@@ -171,24 +174,36 @@ export function UploadPanel() {
               <span className="tabular-nums text-zinc-500">{Math.round(progress * 100)}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-              <div className="h-full bg-violet-600 transition-all" style={{ width: `${progress * 100}%` }} />
+              <div
+                className="h-full bg-violet-600 transition-all"
+                style={{ width: `${progress * 100}%` }}
+              />
             </div>
           </div>
         )}
 
         {error && (
-          <p role="alert" className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+          <p
+            role="alert"
+            className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+          >
             {error}
           </p>
         )}
 
-        <Button size="lg" className="w-full" disabled={!file || uploading} onClick={() => void analyze()}>
+        <Button
+          size="lg"
+          className="w-full"
+          disabled={!file || uploading}
+          onClick={() => void analyze()}
+        >
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           {uploading ? "Uploading" : "Analyze song"}
         </Button>
 
         <p className="flex items-center justify-center gap-1.5 text-xs text-zinc-500">
-          <ShieldCheck className="h-3.5 w-3.5" /> Audio is processed temporarily and deleted after analysis.
+          <ShieldCheck className="h-3.5 w-3.5" /> Audio is processed temporarily and deleted after
+          analysis.
         </p>
       </CardContent>
     </Card>

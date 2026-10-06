@@ -19,6 +19,7 @@ MAX_SUGGESTIONS = 3
 ALREADY_EASY = 0.85
 MIN_IMPROVEMENT = 0.15
 MIN_PLAYABILITY = 0.6
+CAPO_PENALTY = 0.005  # per fret: a slight preference for lower positions
 
 # Ease of each simplified triad shape on guitar (1.0 = open chord).
 _OPEN_MAJOR = {0: 1.0, 2: 1.0, 4: 1.0, 7: 1.0, 9: 1.0, 5: 0.6}  # C D E G A, F (small barre)
@@ -95,7 +96,7 @@ def suggest_capo(song_key: Key, timed_chords: Sequence[tuple[str, float]]) -> Ca
                 CapoOption(capo, play_key, _distinct_shapes(chords, -capo, play_key), score)
             )
     # Prefer easier shapes, then lower capo positions (less tension, more range).
-    options.sort(key=lambda o: (-(o.playability - 0.02 * o.capo), o.capo))
+    options.sort(key=lambda o: (-(o.playability - CAPO_PENALTY * o.capo), o.capo))
     options = options[:MAX_SUGGESTIONS]
     if not options:
         return CapoAdvice(base, [], "No capo position makes this song clearly easier.")

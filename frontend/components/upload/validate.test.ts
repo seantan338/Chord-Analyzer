@@ -13,12 +13,14 @@ function fakeFile(name: string, size: number): File {
 }
 
 describe("validateFile", () => {
-  it("accepts supported files", () => expect(validateFile(fakeFile("a.MP3", 10), limits)).toBeNull());
+  it("accepts supported files", () =>
+    expect(validateFile(fakeFile("a.MP3", 10), limits)).toBeNull());
   it("rejects other extensions", () => {
     expect(validateFile(fakeFile("a.exe", 10), limits)).toMatch(/Unsupported/);
   });
   it("rejects large files", () => {
     expect(validateFile(fakeFile("a.wav", 2 * 1024 * 1024), limits)).toMatch(/limit is 1 MB/);
   });
-  it("rejects empty files", () => expect(validateFile(fakeFile("a.wav", 0), limits)).toMatch(/empty/));
+  it("rejects empty files", () =>
+    expect(validateFile(fakeFile("a.wav", 0), limits)).toMatch(/empty/));
 });

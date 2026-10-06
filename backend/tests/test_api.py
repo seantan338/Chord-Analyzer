@@ -149,3 +149,36 @@ def test_rate_limit(settings) -> None:  # type: ignore[no-untyped-def]
         codes = [client.get("/api/jobs/" + "0" * 32).status_code for _ in range(4)]
     assert codes[:2] == [404, 404]
     assert codes[-1] == 429
+
+
+@pytest.mark.slow
+def test_transposed_views(client: TestClient, song_wav: Path) -> None:
+    job_id = _upload(client, song_wav, mime="audio/wav").json()["job_id"]
+    base = f"/api/jobs/{job_id}/result"
+
+    up2 = client.get(base, params={"semitones": 2}).json()
+    assert up2["music"]["key"] == "D Major"
+    assert up2["view"] == {"semitones": 2, "original_key": "C Major", "chord_mode": "original"}
+    assert {"D", "A", "Bm", "G"} <= {c["chord"] for c in up2["chords"]}
+    assert {c["simplified"] for c in up2["chords"]} <= {"D", "A", "Bm", "G", "N"}
+
+    eb = client.get(base, params={"target_key": "Eb"}).json()
+    assert eb["music"]["key"] == "Eb Major"
+    assert {"Eb", "Bb", "Cm", "Ab"} <= {c["chord"] for c in eb["chords"]}
+    capo = {s["capo"]: s for s in eb["capo_suggestions"]}
+    assert capo[3]["play_key"] == "C Major"
+    assert capo[3]["play_chords"][:4] == ["C", "G", "Am", "F"]
+
+    # bars are transposed consistently with segments
+    bar_chords = {bc["chord"] for bar in eb["bars"] for bc in bar["chords"]}
+    assert "Eb" in bar_chords and "C" not in bar_chords
+
+    original = client.get(base).json()
+    assert original["music"]["key"] == "C Major"
+    assert original["capo_suggestions"] == []
+
+    wrong_mode = client.get(base, params={"target_key": "A minor"})
+    assert wrong_mode.status_code == 422
+    assert "major" in wrong_mode.json()["error"]["message"]
+    assert client.get(base, params={"target_key": "H"}).status_code == 422
+    assert client.get(base, params={"semitones": 40}).status_code == 422

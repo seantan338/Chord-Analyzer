@@ -26,6 +26,7 @@ from app.schemas.jobs import (
     StageInfo,
 )
 from app.services.analysis_service import AnalysisService
+from app.services.result_view import transpose_result
 
 router = APIRouter(prefix="/api", tags=["analysis"], dependencies=[Depends(require_api_key)])
 
@@ -142,9 +143,14 @@ async def get_job(job_id: str, service: AnalysisService = Depends(get_service)) 
     response_model=AnalysisResult,
     responses=_ERRORS,
     dependencies=[Depends(rate_limited("read"))],
-    summary="Full analysis result",
+    summary="Full analysis result, optionally transposed",
 )
 async def get_result(
-    job_id: str, service: AnalysisService = Depends(get_service)
+    job_id: str,
+    semitones: int = Query(0, ge=-11, le=11, description="Transpose by N semitones"),
+    target_key: str | None = Query(
+        None, max_length=24, description='Transpose to a key, e.g. "D" or "F# Minor"'
+    ),
+    service: AnalysisService = Depends(get_service),
 ) -> AnalysisResult:
-    return service.get_result(job_id)
+    return transpose_result(service.get_result(job_id), semitones=semitones, target_key=target_key)

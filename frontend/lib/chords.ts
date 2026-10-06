@@ -1,5 +1,10 @@
 import type { CSSProperties } from "react";
-import type { ChordMode, ChordSegment, SimpleChordSegment, TimelineSegment } from "@/types/analysis";
+import type {
+  ChordMode,
+  ChordSegment,
+  SimpleChordSegment,
+  TimelineSegment,
+} from "@/types/analysis";
 
 export const NO_CHORD = "N";
 

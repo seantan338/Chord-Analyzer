@@ -53,7 +53,10 @@ describe("chord helpers", () => {
     const beginner: SimpleChordSegment[] = [
       { start: 0, end: 4, chord: "G", confidence: 0.9, confidence_level: "high" },
     ];
-    expect(timelineSegments(chords, beginner, "original").map((s) => s.chord)).toEqual(["G/B", "G"]);
+    expect(timelineSegments(chords, beginner, "original").map((s) => s.chord)).toEqual([
+      "G/B",
+      "G",
+    ]);
     expect(timelineSegments(chords, beginner, "beginner")).toBe(beginner);
   });
 });

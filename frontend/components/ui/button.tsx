@@ -25,7 +25,11 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /** Button styling for non-button elements (e.g. links). */
-export function buttonClasses(variant: Variant = "primary", size: Size = "md", className?: string): string {
+export function buttonClasses(
+  variant: Variant = "primary",
+  size: Size = "md",
+  className?: string,
+): string {
   return cn(
     "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
     "focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed",
@@ -40,11 +44,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   ref,
 ) {
   return (
-    <button
-      ref={ref}
-      type={type}
-      className={buttonClasses(variant, size, className)}
-      {...props}
-    />
+    <button ref={ref} type={type} className={buttonClasses(variant, size, className)} {...props} />
   );
 });
