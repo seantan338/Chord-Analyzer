@@ -7,7 +7,8 @@ import { chordStyle, displayChord } from "@/lib/chords";
 import { CONFIDENCE_LABEL } from "@/lib/confidence";
 import { formatTime } from "@/lib/format";
 import { useActiveIndex } from "@/lib/playback";
-import type { TimelineSegment } from "@/types/analysis";
+import type { Section, TimelineSegment } from "@/types/analysis";
+import { SectionStrip } from "./SectionStrip";
 import { Waveform } from "./Waveform";
 
 const PX_PER_SECOND = 28;
@@ -52,10 +53,12 @@ const ChordBlock = memo(function ChordBlock({
 
 export function ChordTimeline({
   segments,
+  sections,
   duration,
   waveform,
 }: {
   segments: TimelineSegment[];
+  sections: Section[];
   duration: number;
   waveform: number[];
 }) {
@@ -74,7 +77,8 @@ export function ChordTimeline({
   }, [active, playing]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
+      <SectionStrip sections={sections} duration={duration} />
       <Waveform peaks={waveform} segments={segments} duration={duration} />
       <div className="overflow-x-auto pb-3" aria-label="Chord timeline">
         <div className="flex gap-1.5 p-2">

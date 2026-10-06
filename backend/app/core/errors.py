@@ -12,9 +12,11 @@ class ChordAnalyzerError(Exception):
     status_code = 500
     message = "Something went wrong while analyzing this audio. Please try again."
 
-    def __init__(self, message: str | None = None) -> None:
+    def __init__(self, message: str | None = None, *, code: str | None = None) -> None:
         if message:
             self.message = message
+        if code:
+            self.code = code
         super().__init__(self.message)
 
 

@@ -108,3 +108,38 @@ export function uploadAudio(
     xhr.send(form);
   });
 }
+
+export type ExportFormat = "txt" | "markdown" | "json";
+
+export interface ExportOptions {
+  semitones?: number;
+  mode?: "original" | "beginner";
+  download?: boolean;
+}
+
+export function exportUrl(
+  jobId: string,
+  format: ExportFormat,
+  options: ExportOptions = {},
+): string {
+  const params = new URLSearchParams({ format });
+  if (options.semitones) params.set("semitones", String(options.semitones));
+  if (options.mode && options.mode !== "original") params.set("mode", options.mode);
+  if (options.download === false) params.set("download", "false");
+  return `${API_BASE_URL}/api/jobs/${encodeURIComponent(jobId)}/export?${params.toString()}`;
+}
+
+export async function fetchExportText(
+  jobId: string,
+  format: ExportFormat,
+  options: Omit<ExportOptions, "download"> = {},
+): Promise<string> {
+  let response: Response;
+  try {
+    response = await fetch(exportUrl(jobId, format, { ...options, download: false }));
+  } catch {
+    throw new ApiError(0, "network_error", NETWORK_MESSAGE);
+  }
+  if (!response.ok) throw toApiError(response.status, await response.json().catch(() => null));
+  return response.text();
+}

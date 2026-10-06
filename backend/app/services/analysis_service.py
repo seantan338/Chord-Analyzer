@@ -6,6 +6,7 @@ import re
 import uuid
 from dataclasses import dataclass
 
+from app.audio.loader import require_binary
 from app.audio.pipeline import PipelineOptions
 from app.core.config import ANALYZER_VERSION, Settings
 from app.core.errors import (
@@ -57,6 +58,9 @@ class AnalysisService:
     async def submit(
         self, stream: AsyncReadable, filename: str | None, content_type: str | None
     ) -> Submission:
+        # Fail fast (503) instead of queueing a job that cannot run.
+        require_binary(self.settings.ffmpeg_path)
+        require_binary(self.settings.ffprobe_path)
         if self.repo.count_active() >= self.settings.max_queued_jobs:
             raise QueueFullError()
         job_id = uuid.uuid4().hex
@@ -128,7 +132,7 @@ class AnalysisService:
     def get_result(self, job_id: str) -> AnalysisResult:
         job = self.get_job(job_id)
         if job.status is JobStatus.FAILED:
-            raise JobFailedError(job.error_message or JobFailedError.message)
+            raise JobFailedError(job.error_message, code=job.error_code)
         if job.status is not JobStatus.COMPLETED or not job.result_json:
             raise JobNotReadyError()
         return AnalysisResult.model_validate_json(job.result_json)

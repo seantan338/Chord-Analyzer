@@ -13,8 +13,10 @@ import type { AnalysisResult, ChordMode } from "@/types/analysis";
 import { CapoSuggestions } from "./CapoSuggestions";
 import { ChordSheetPanel } from "./ChordSheetPanel";
 import { ChordTimeline } from "./ChordTimeline";
+import { ExportMenu } from "./ExportMenu";
 import { OverviewPanel } from "./OverviewPanel";
 import { SongHeader } from "./SongHeader";
+import { StructureCard } from "./StructureCard";
 import { TransposeControls, TransposePanel } from "./TransposePanel";
 
 type TabId = "overview" | "timeline" | "sheet" | "transpose";
@@ -74,18 +76,28 @@ export function ResultsView({
             <OverviewPanel
               result={result}
               segments={segments}
-              extra={<CapoSuggestions result={result} className="lg:col-span-3" />}
+              extra={
+                <>
+                  <StructureCard sections={result.sections} className="lg:col-span-2" />
+                  <CapoSuggestions result={result} />
+                </>
+              }
             />
           </TabPanel>
           <TabPanel idPrefix="results" id="timeline" active={tab === "timeline"}>
             <ChordTimeline
               segments={segments}
+              sections={result.sections}
               duration={result.metadata.duration}
               waveform={result.waveform}
             />
           </TabPanel>
           <TabPanel idPrefix="results" id="sheet" active={tab === "sheet"}>
-            <ChordSheetPanel result={result} mode={mode} />
+            <ChordSheetPanel
+              result={result}
+              mode={mode}
+              actions={<ExportMenu jobId={jobId} semitones={result.view.semitones} mode={mode} />}
+            />
           </TabPanel>
           <TabPanel idPrefix="results" id="transpose" active={tab === "transpose"}>
             <TransposePanel

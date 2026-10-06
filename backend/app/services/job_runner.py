@@ -28,6 +28,10 @@ logger = logging.getLogger(__name__)
 _PRELOAD = ["app.services.worker_preload"]
 
 
+def _noop() -> None:
+    return None
+
+
 class JobRunner(Protocol):
     def submit(self, spec: JobSpec) -> None: ...
 
@@ -54,6 +58,17 @@ class ProcessJobRunner:
             self._ctx = forkserver
         else:  # Windows
             self._ctx = multiprocessing.get_context("spawn")
+
+        # Start the fork server (and its preloaded imports) now, not on the first upload.
+        self._pool.submit(self._warm_up)
+
+    def _warm_up(self) -> None:
+        try:
+            process = self._ctx.Process(target=_noop, daemon=True)
+            process.start()
+            process.join(60)
+        except Exception:
+            logger.warning("worker warm-up failed", exc_info=True)
 
     def submit(self, spec: JobSpec) -> None:
         self._pool.submit(self._supervise, spec)

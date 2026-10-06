@@ -8,12 +8,15 @@ GET  /api/jobs/{job_id}/result    full analysis JSON
 from __future__ import annotations
 
 import asyncio
+import re
 import time
+from typing import Literal
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile
 
 from app.api.deps import get_service, rate_limited, require_api_key
-from app.core.errors import ChordAnalyzerError
+from app.exporters.registry import get_format
 from app.models.job import PROGRESS_STAGES, STAGE_LABELS, Job, JobStatus
 from app.schemas.analysis import AnalysisResult
 from app.schemas.jobs import (
@@ -25,7 +28,7 @@ from app.schemas.jobs import (
     JobSummary,
     StageInfo,
 )
-from app.services.analysis_service import AnalysisService
+from app.services.analysis_service import AnalysisService, JobFailedError
 from app.services.result_view import transpose_result
 
 router = APIRouter(prefix="/api", tags=["analysis"], dependencies=[Depends(require_api_key)])
@@ -114,10 +117,7 @@ async def analyze(
         if wait or submission.cached:
             result = service.get_result(job.id)
     elif job.status is JobStatus.FAILED and wait:
-        error = ChordAnalyzerError(job.error_message)
-        error.code = job.error_code or error.code
-        error.status_code = 422
-        raise error
+        raise JobFailedError(job.error_message, code=job.error_code)
     return JobCreated(
         job_id=job.id,
         status=job.status,
@@ -154,3 +154,46 @@ async def get_result(
     service: AnalysisService = Depends(get_service),
 ) -> AnalysisResult:
     return transpose_result(service.get_result(job_id), semitones=semitones, target_key=target_key)
+
+
+def _download_name(filename: str, key: str, semitones: int, mode: str, extension: str) -> str:
+    stem = filename.rsplit(".", 1)[0] if "." in filename else filename
+    parts = [stem]
+    if semitones:
+        parts.append(f"({key})")
+    if mode == "beginner":
+        parts.append("(beginner)")
+    return " ".join(parts) + extension
+
+
+@router.get(
+    "/jobs/{job_id}/export",
+    responses={**_ERRORS, 200: {"content": {"text/plain": {}, "text/markdown": {}}}},
+    dependencies=[Depends(rate_limited("read"))],
+    summary="Export the chord sheet (txt, markdown or json)",
+)
+async def export_result(
+    job_id: str,
+    export_format: str = Query("txt", alias="format", description="txt | markdown | json"),
+    mode: Literal["original", "beginner"] = Query("original"),
+    semitones: int = Query(0, ge=-11, le=11),
+    target_key: str | None = Query(None, max_length=24),
+    download: bool = Query(True, description="Send as attachment (false = inline text)"),
+    service: AnalysisService = Depends(get_service),
+) -> Response:
+    export = get_format(export_format)
+    result = transpose_result(
+        service.get_result(job_id), semitones=semitones, target_key=target_key
+    )
+    result = result.model_copy(update={"view": result.view.model_copy(update={"chord_mode": mode})})
+    body = export.render(result, mode)
+    name = _download_name(
+        result.metadata.filename, result.music.key, result.view.semitones, mode, export.extension
+    )
+    ascii_name = re.sub(r"[^A-Za-z0-9 ._()+-]", "_", name)
+    disposition = "attachment" if download else "inline"
+    headers = {
+        "Content-Disposition": f'{disposition}; filename="{ascii_name}"; '
+        f"filename*=UTF-8''{quote(name)}"
+    }
+    return Response(content=body, media_type=export.media_type, headers=headers)

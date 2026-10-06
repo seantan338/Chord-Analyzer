@@ -182,3 +182,47 @@ def test_transposed_views(client: TestClient, song_wav: Path) -> None:
     assert "major" in wrong_mode.json()["error"]["message"]
     assert client.get(base, params={"target_key": "H"}).status_code == 422
     assert client.get(base, params={"semitones": 40}).status_code == 422
+
+
+@pytest.mark.slow
+def test_export_endpoint(client: TestClient, song_wav: Path) -> None:
+    job_id = _upload(client, song_wav, mime="audio/wav").json()["job_id"]
+    base = f"/api/jobs/{job_id}/export"
+
+    txt = client.get(base, params={"format": "txt"})
+    assert txt.status_code == 200
+    assert txt.headers["content-type"].startswith("text/plain")
+    assert 'filename="song.txt"' in txt.headers["content-disposition"]
+    assert "Key: C Major" in txt.text and "| C " in txt.text
+
+    md = client.get(base, params={"format": "markdown", "semitones": 2, "mode": "beginner"})
+    assert md.headers["content-type"].startswith("text/markdown")
+    assert "song (D Major) (beginner).md" in md.headers["content-disposition"]
+    assert "| D Major |" in md.text and "Transposed +2 from C Major" in md.text
+
+    js = client.get(base, params={"format": "json", "download": "false"})
+    assert js.headers["content-disposition"].startswith("inline")
+    assert js.json()["music"]["key"] == "C Major"
+
+    assert client.get(base, params={"format": "pdf"}).status_code == 422
+
+
+def test_missing_ffmpeg_is_reported_immediately(settings, song_wav: Path) -> None:  # type: ignore[no-untyped-def]
+    from app.main import create_app
+
+    settings.ffmpeg_path = "definitely-not-ffmpeg"
+    with TestClient(create_app(settings)) as client:
+        assert client.get("/api/health").json()["status"] == "degraded"
+        response = _upload(client, song_wav, mime="audio/wav")
+    assert response.status_code == 503
+    assert response.json()["error"]["code"] == "dependency_missing"
+
+
+def test_wait_mode_reports_job_errors(client: TestClient, tmp_path: Path) -> None:
+    path = write_wav(tmp_path / "silence.wav", np.zeros(22050 * 10, dtype=np.float32))
+    with path.open("rb") as fh:
+        response = client.post(
+            "/api/analyze", params={"wait": 30}, files={"file": ("silence.wav", fh, "audio/wav")}
+        )
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "silent_audio"

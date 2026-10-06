@@ -16,7 +16,19 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from app.audio import chord_detection, chroma, grid, key_detection, meter, preprocess, tempo
+import numpy as np
+
+from app.audio import (
+    chord_detection,
+    chroma,
+    grid,
+    key_detection,
+    meter,
+    preprocess,
+    structure,
+    tempo,
+)
+from app.audio.bars import interval_bar_numbers
 from app.audio.chord_refine import refine_chords
 from app.audio.chord_smoothing import bar_positions, smooth_chords
 from app.audio.formats import AudioFormat
@@ -65,6 +77,8 @@ class PipelineOutput:
     harmonic_ratio: float
     tuning: float
     waveform: list[float]
+    sections: list[structure.DetectedSection] = field(default_factory=list)
+    structure_confidence: float = 0.0
     warnings: list[str] = field(default_factory=list)
 
 
@@ -156,6 +170,8 @@ def analyze_signal(
         chords = refine_chords(chords, features, positions)
 
     on_stage(Stage.STRUCTURE)
+    sections, structure_confidence = _structure(signal, frames, beat_grid, meter_est)
+
     on_stage(Stage.FINALIZING)
     return PipelineOutput(
         duration=round(signal.duration, 3),
@@ -168,7 +184,25 @@ def analyze_signal(
         harmonic_ratio=frames.harmonic_ratio,
         tuning=frames.tuning,
         waveform=waveform_peaks(signal.samples),
+        sections=sections,
+        structure_confidence=structure_confidence,
         warnings=warnings,
+    )
+
+
+def _structure(
+    signal: AudioSignal, frames: chroma.FrameFeatures, beat_grid: BeatGrid, meter_est: MeterEstimate
+) -> tuple[list[structure.DetectedSection], float]:
+    import librosa
+
+    sr, hop = signal.sample_rate, HOP_LENGTH
+    mfcc = librosa.feature.mfcc(y=signal.samples, sr=sr, hop_length=hop, n_mfcc=13)[1:]
+    rms = librosa.feature.rms(y=signal.samples, hop_length=hop)
+    return structure.detect_structure(
+        chroma=chroma.sync_to_grid(frames.treble, beat_grid),
+        timbre=chroma.sync_to_grid(np.asarray(mfcc, dtype=np.float64), beat_grid),
+        energy=chroma.sync_to_grid(np.asarray(rms, dtype=np.float64), beat_grid)[0],
+        bar_numbers=interval_bar_numbers(beat_grid, meter_est),
     )
 
 

@@ -89,6 +89,31 @@ def capo_fields(key: Key, segments: Sequence[ChordSegment]) -> tuple[list[CapoSu
     return suggestions, advice.note
 
 
+def build_sections(output: PipelineOutput, bars: Sequence[Bar]) -> list[Section]:
+    by_index = {bar.index: bar for bar in bars}
+    sections: list[Section] = []
+    for i, detected in enumerate(output.sections):
+        first, last = by_index.get(detected.bar_start), by_index.get(detected.bar_end)
+        if first is None or last is None:
+            continue
+        sections.append(
+            Section(
+                id=f"s{i + 1}",
+                label=detected.label,
+                name=detected.name,
+                name_is_inferred=detected.name_is_inferred,
+                name_confidence=detected.name_confidence,
+                start=first.start,
+                end=last.end,
+                bar_start=detected.bar_start,
+                bar_end=detected.bar_end,
+                confidence=detected.confidence,
+                confidence_level=confidence_level(detected.confidence),
+            )
+        )
+    return sections
+
+
 def build_result(
     analysis_id: str,
     output: PipelineOutput,
@@ -96,8 +121,6 @@ def build_result(
     filename: str,
     file_size: int,
     analyzer_version: str,
-    sections: Sequence[Section] = (),
-    structure_confidence: float = 0.0,
 ) -> AnalysisResult:
     key = Key(output.key.tonic, Mode(output.key.mode))
     grid, meter = output.grid, output.meter
@@ -137,6 +160,7 @@ def build_result(
         )
         for bar in build_bars(grid, meter, output.chords)
     ]
+    sections = build_sections(output, bars)
 
     voiced = [s for s in segments if s.chord != NO_CHORD]
     chord_conf = duration_weighted_mean(
@@ -178,7 +202,7 @@ def build_result(
             beats=[_r(t) for t in grid.beat_times],
             downbeats=[_r(t) for t in grid.times[:-1][positions == 0]],
         ),
-        sections=list(sections),
+        sections=sections,
         bars=bars,
         chords=segments,
         beginner_chords=merge_simplified(segments),
@@ -190,7 +214,7 @@ def build_result(
             tempo=score(tempo.confidence),
             time_signature=score(meter.confidence),
             chords=score(chord_conf),
-            structure=score(structure_confidence),
+            structure=score(output.structure_confidence),
         ),
         warnings=list(output.warnings),
         view=ViewInfo(semitones=0, original_key=key.name),
